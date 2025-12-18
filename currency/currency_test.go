@@ -29,7 +29,7 @@ func TestFormat(t *testing.T) {
 		t.Fatalf("unexpected format: %s", s)
 	}
 	s = Format(usd, -1234.5, true, true)
-	if s != "($1,234.50 USD)" {
+	if s != "-$1,234.50 USD" {
 		t.Fatalf("unexpected negative USD format: %s", s)
 	}
 
