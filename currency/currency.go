@@ -108,9 +108,6 @@ func Format(c Currency, amount float64, showSymbol, showCode bool) string {
 	}
 
 	if amount < 0 {
-		if c.Code == "USD" {
-			return "(" + core + ")"
-		}
 		return "-" + core
 	}
 	return core
