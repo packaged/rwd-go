@@ -1,167 +1,332 @@
 package currency
 
-import (
-	_ "embed"
-	"encoding/json"
-	"errors"
-	"fmt"
-	"sort"
-	"strings"
-)
-
-//go:embed data/currency.json
-var currenciesJSON []byte
-
-// rawModel matches the structure used in the PHP build file: { "Names": { "USD": [symbol, name], ... } }
-type rawModel struct {
-	Names map[string][2]string `json:"Names"`
-}
-
-// Currency represents basic currency metadata used by this package.
-type Currency struct {
-	Code   string
-	Symbol string
-	Name   string
-}
-
-var (
-	data       rawModel
-	codeToInfo map[string]Currency
-)
+var Currencies map[string]Currency
 
 func init() {
-	_ = json.Unmarshal(currenciesJSON, &data)
-	codeToInfo = make(map[string]Currency, len(data.Names))
-	for code, arr := range data.Names {
-		c := Currency{
-			Code:   code,
-			Symbol: arr[0],
-			Name:   arr[1],
-		}
-		codeToInfo[c.Code] = c
-	}
-}
+	Currencies = make(map[string]Currency)
 
-// Get returns a Currency by ISO code (case-insensitive).
-func Get(code string) (Currency, error) {
-	if code == "" {
-		return Currency{}, errors.New("currency code is required")
-	}
-	c, ok := codeToInfo[strings.ToUpper(code)]
-	if !ok {
-		return Currency{}, errors.New("unsupported currency: " + code)
-	}
-	return c, nil
-}
-
-// ListAll returns a sorted list of all currency codes to names.
-func ListAll() map[string]string {
-	// keep map output stable by sorting keys first
-	keys := make([]string, 0, len(codeToInfo))
-	for k := range codeToInfo {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-	out := make(map[string]string, len(keys))
-	for _, k := range keys {
-		out[k] = codeToInfo[k].Name
-	}
-	return out
-}
-
-// Common returns a subset of common currencies similar to PHP CurrencyHelper::commonCurrencies().
-func Common() map[string]string {
-	codes := []string{"USD", "GBP", "EUR", "AUD", "CAD"}
-	out := make(map[string]string, len(codes))
-	for _, c := range codes {
-		if cur, ok := codeToInfo[c]; ok {
-			out[c] = cur.Name
-		}
-	}
-	return out
-}
-
-// Format returns a string formatted amount using the currency's symbol and code.
-// Behavior mirrors the defaults of the PHP implementation for most currencies:
-// - uses 2 decimals, '.' decimal separator, ',' thousands separator
-// - negative values use a leading '-' for most currencies
-// - USD specifically wraps negatives in parentheses: ($1.00)
-// You can choose to display symbol and/or code.
-func Format(c Currency, amount float64, showSymbol, showCode bool) string {
-	abs := amount
-	if abs < 0 {
-		abs = -abs
-	}
-	num := numberFormat(abs, 2, '.', ',')
-	symbol := ""
-	if showSymbol {
-		symbol = c.Symbol
-	}
-	code := ""
-	if showCode {
-		code = c.Code
-	}
-	// base format: optional '-', then {symbol}{number} and optional space + {code}
-	core := symbol + num
-	if showCode && code != "" {
-		core += " " + code
+	Currencies["AUD"] = CommonCurrency{
+		name:              "Australian Dollar",
+		symbol:            "$",
+		code:              "AUD",
+		numericCode:       36,
+		decimalCount:      2,
+		decimalSeparator:  ".",
+		thousandSeparator: ",",
+		majorUnit:         "dollar",
+		minorUnit:         "cent",
+		formatPattern:     "{symbol}{amount}",
 	}
 
-	if amount < 0 {
-		return "-" + core
+	Currencies["BRL"] = CommonCurrency{
+		name:              "Brazilian Real",
+		symbol:            "R$",
+		code:              "BRL",
+		numericCode:       986,
+		decimalCount:      2,
+		decimalSeparator:  ",",
+		thousandSeparator: ".",
+		majorUnit:         "real",
+		minorUnit:         "centavo",
+		formatPattern:     "{code} {amount}",
 	}
-	return core
-}
 
-// numberFormat replicates a simple 1000s format with fixed decimals.
-func numberFormat(n float64, decimals int, dec byte, thou byte) string {
-	// Round to required decimals using sprintf-like behavior.
-	// Implement minimal formatter without importing fmt for performance and stability.
-	// We'll use fmt for simplicity as minimalism is not critical here.
-	// NOTE: Keeping implementation simple and dependable.
-	return simpleNumberFormat(n, decimals, dec, thou)
-}
+	Currencies["CAD"] = CommonCurrency{
+		name:              "Canadian Dollar",
+		symbol:            "$",
+		code:              "CAD",
+		numericCode:       124,
+		decimalCount:      2,
+		decimalSeparator:  ".",
+		thousandSeparator: ",",
+		majorUnit:         "dollar",
+		minorUnit:         "cent",
+		formatPattern:     "{symbol}{amount}",
+	}
 
-// simpleNumberFormat uses fmt and string post-processing for thousand separators.
-func simpleNumberFormat(n float64, decimals int, dec byte, thou byte) string {
-	// Use fmt to get a fixed decimal string, then inject thousands separators.
-	// We avoid locale complexity.
-	s := formatFixed(n, decimals)
-	// split integer and fraction
-	i := strings.IndexByte(s, '.')
-	intPart := s
-	frac := ""
-	if i >= 0 {
-		intPart = s[:i]
-		frac = s[i+1:]
+	Currencies["CHF"] = CommonCurrency{
+		name:              "Swiss Franc",
+		symbol:            "CHF",
+		code:              "CHF",
+		numericCode:       756,
+		decimalCount:      2,
+		decimalSeparator:  ".",
+		thousandSeparator: "'",
+		majorUnit:         "franc",
+		minorUnit:         "centime",
+		formatPattern:     "{symbol} {amount}",
 	}
-	// insert thousands separators into intPart
-	var b strings.Builder
-	l := len(intPart)
-	for idx, r := range intPart {
-		// r is rune but input is ASCII digits, keep it simple
-		b.WriteRune(r)
-		pos := idx + 1
-		if l > 3 && pos < l && (l-pos)%3 == 0 {
-			b.WriteByte(thou)
-		}
-	}
-	if decimals > 0 {
-		b.WriteByte(dec)
-		// pad or trim fraction to required length
-		if len(frac) < decimals {
-			b.WriteString(frac)
-			for i := len(frac); i < decimals; i++ {
-				b.WriteByte('0')
-			}
-		} else {
-			b.WriteString(frac[:decimals])
-		}
-	}
-	return b.String()
-}
 
-func formatFixed(n float64, decimals int) string {
-	// Use fmt to get a fixed decimal string
-	return fmt.Sprintf("%.*f", decimals, n)
+	Currencies["CNY"] = CommonCurrency{
+		name:              "Yuan Renminbi",
+		symbol:            "¥",
+		code:              "CNY",
+		numericCode:       156,
+		decimalCount:      2,
+		decimalSeparator:  ".",
+		thousandSeparator: ",",
+		majorUnit:         "yuan",
+		minorUnit:         "fen",
+		formatPattern:     "{symbol}{amount}",
+	}
+
+	Currencies["DKK"] = CommonCurrency{
+		name:              "Danish Krone",
+		symbol:            "kr",
+		code:              "DKK",
+		numericCode:       208,
+		decimalCount:      2,
+		decimalSeparator:  ",",
+		thousandSeparator: ".",
+		majorUnit:         "krone",
+		minorUnit:         "øre",
+		formatPattern:     "{amount} {code}",
+	}
+
+	Currencies["EUR"] = CommonCurrency{
+		name:              "Euro",
+		symbol:            "€",
+		code:              "EUR",
+		numericCode:       978,
+		decimalCount:      2,
+		decimalSeparator:  ",",
+		thousandSeparator: ".",
+		majorUnit:         "euro",
+		minorUnit:         "cent",
+		formatPattern:     "{symbol}{amount}",
+	}
+
+	Currencies["GBP"] = CommonCurrency{
+		name:              "Pound Sterling",
+		symbol:            "£",
+		code:              "GBP",
+		numericCode:       826,
+		decimalCount:      2,
+		decimalSeparator:  ".",
+		thousandSeparator: ",",
+		majorUnit:         "pound",
+		minorUnit:         "penny",
+		formatPattern:     "{symbol}{amount}",
+	}
+
+	Currencies["HKD"] = CommonCurrency{
+		name:              "Hong Kong Dollar",
+		symbol:            "HK$",
+		code:              "HKD",
+		numericCode:       344,
+		decimalCount:      2,
+		decimalSeparator:  ".",
+		thousandSeparator: ",",
+		majorUnit:         "dollar",
+		minorUnit:         "cent",
+		formatPattern:     "{symbol}{amount}",
+	}
+
+	Currencies["IDR"] = CommonCurrency{
+		name:              "Rupiah",
+		symbol:            "Rp",
+		code:              "IDR",
+		numericCode:       360,
+		decimalCount:      0,
+		decimalSeparator:  ",",
+		thousandSeparator: ".",
+		majorUnit:         "rupiah",
+		minorUnit:         "",
+		formatPattern:     "{code} {amount}",
+	}
+
+	Currencies["INR"] = CommonCurrency{
+		name:              "Indian Rupee",
+		symbol:            "₹",
+		code:              "INR",
+		numericCode:       356,
+		decimalCount:      2,
+		decimalSeparator:  ".",
+		thousandSeparator: ",",
+		majorUnit:         "rupee",
+		minorUnit:         "paisa",
+		formatPattern:     "{symbol}{amount}",
+	}
+
+	Currencies["JPY"] = CommonCurrency{
+		name:              "Yen",
+		symbol:            "¥",
+		code:              "JPY",
+		numericCode:       392,
+		decimalCount:      0,
+		decimalSeparator:  ".",
+		thousandSeparator: ",",
+		majorUnit:         "yen",
+		minorUnit:         "",
+		formatPattern:     "{symbol}{amount}",
+	}
+
+	Currencies["KRW"] = CommonCurrency{
+		name:              "Won",
+		symbol:            "₩",
+		code:              "KRW",
+		numericCode:       410,
+		decimalCount:      0,
+		decimalSeparator:  ".",
+		thousandSeparator: ",",
+		majorUnit:         "won",
+		minorUnit:         "",
+		formatPattern:     "{symbol}{amount}",
+	}
+
+	Currencies["MXN"] = CommonCurrency{
+		name:              "Mexican Peso",
+		symbol:            "$",
+		code:              "MXN",
+		numericCode:       484,
+		decimalCount:      2,
+		decimalSeparator:  ".",
+		thousandSeparator: ",",
+		majorUnit:         "peso",
+		minorUnit:         "centavo",
+		formatPattern:     "{symbol}{amount}",
+	}
+
+	Currencies["NOK"] = CommonCurrency{
+		name:              "Norwegian Krone",
+		symbol:            "kr",
+		code:              "NOK",
+		numericCode:       578,
+		decimalCount:      2,
+		decimalSeparator:  ".",
+		thousandSeparator: ",",
+		majorUnit:         "krone",
+		minorUnit:         "øre",
+		formatPattern:     "{amount} {code}",
+	}
+
+	Currencies["NZD"] = CommonCurrency{
+		name:              "New Zealand Dollar",
+		symbol:            "$",
+		code:              "NZD",
+		numericCode:       554,
+		decimalCount:      2,
+		decimalSeparator:  ".",
+		thousandSeparator: ",",
+		majorUnit:         "dollar",
+		minorUnit:         "cent",
+		formatPattern:     "{symbol}{amount}",
+	}
+
+	Currencies["PLN"] = CommonCurrency{
+		name:              "Zloty",
+		symbol:            "zł",
+		code:              "PLN",
+		numericCode:       985,
+		decimalCount:      2,
+		decimalSeparator:  ",",
+		thousandSeparator: ".",
+		majorUnit:         "zloty",
+		minorUnit:         "grosz",
+		formatPattern:     "{amount} {code}",
+	}
+
+	Currencies["RUB"] = CommonCurrency{
+		name:              "Russian Ruble",
+		symbol:            "₽",
+		code:              "RUB",
+		numericCode:       643,
+		decimalCount:      2,
+		decimalSeparator:  ",",
+		thousandSeparator: ".",
+		majorUnit:         "ruble",
+		minorUnit:         "kopek",
+		formatPattern:     "{amount} {symbol}",
+	}
+
+	Currencies["SAR"] = CommonCurrency{
+		name:              "Saudi Riyal",
+		symbol:            "ر.س",
+		code:              "SAR",
+		numericCode:       682,
+		decimalCount:      2,
+		decimalSeparator:  ".",
+		thousandSeparator: ",",
+		majorUnit:         "riyal",
+		minorUnit:         "halala",
+		formatPattern:     "{code} {amount}",
+	}
+
+	Currencies["SEK"] = CommonCurrency{
+		name:              "Swedish Krona",
+		symbol:            "kr",
+		code:              "SEK",
+		numericCode:       752,
+		decimalCount:      2,
+		decimalSeparator:  ",",
+		thousandSeparator: ".",
+		majorUnit:         "krona",
+		minorUnit:         "öre",
+		formatPattern:     "{amount} {code}",
+	}
+
+	Currencies["THB"] = CommonCurrency{
+		name:              "Baht",
+		symbol:            "฿",
+		code:              "THB",
+		numericCode:       764,
+		decimalCount:      2,
+		decimalSeparator:  ".",
+		thousandSeparator: ",",
+		majorUnit:         "baht",
+		minorUnit:         "satang",
+		formatPattern:     "{symbol}{amount}",
+	}
+
+	Currencies["TRY"] = CommonCurrency{
+		name:              "Turkish Lira",
+		symbol:            "₺",
+		code:              "TRY",
+		numericCode:       949,
+		decimalCount:      2,
+		decimalSeparator:  ".",
+		thousandSeparator: ",",
+		majorUnit:         "lira",
+		minorUnit:         "kuruş",
+		formatPattern:     "{symbol}{amount}",
+	}
+
+	Currencies["TWD"] = CommonCurrency{
+		name:              "New Taiwan Dollar",
+		symbol:            "NT$",
+		code:              "TWD",
+		numericCode:       901,
+		decimalCount:      2,
+		decimalSeparator:  ".",
+		thousandSeparator: ",",
+		majorUnit:         "dollar",
+		minorUnit:         "cent",
+		formatPattern:     "{symbol}{amount}",
+	}
+
+	Currencies["USD"] = CommonCurrency{
+		name:              "US Dollar",
+		symbol:            "$",
+		code:              "USD",
+		numericCode:       840,
+		decimalCount:      2,
+		decimalSeparator:  ".",
+		thousandSeparator: ",",
+		majorUnit:         "dollar",
+		minorUnit:         "cent",
+		formatPattern:     "{symbol}{amount}",
+	}
+
+	Currencies["ZAR"] = CommonCurrency{
+		name:              "Rand",
+		symbol:            "R",
+		code:              "ZAR",
+		numericCode:       710,
+		decimalCount:      2,
+		decimalSeparator:  ".",
+		thousandSeparator: ",",
+		majorUnit:         "rand",
+		minorUnit:         "cent",
+		formatPattern:     "{code} {amount}",
+	}
 }
