@@ -356,6 +356,59 @@ func TestGetByCode(t *testing.T) {
 	}
 }
 
+// TestFromInt tests converting minor unit int64 to float64
+func TestFromInt(t *testing.T) {
+	tests := []struct {
+		name     string
+		currency string
+		amount   int64
+		expected float64
+	}{
+		{"USD positive", "USD", 12345, 123.45},
+		{"USD zero", "USD", 0, 0.0},
+		{"USD negative", "USD", -12345, -123.45},
+		{"USD small", "USD", 1, 0.01},
+		{"JPY no decimals", "JPY", 12345, 12345.0},
+		{"JPY negative no decimals", "JPY", -500, -500.0},
+		{"EUR positive", "EUR", 100, 1.0},
+		{"IDR no decimals", "IDR", 50000, 50000.0},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cur := Currencies[tt.currency]
+			result := cur.FromInt(tt.amount)
+			if result != tt.expected {
+				t.Errorf("FromInt(%d) = %f, want %f", tt.amount, result, tt.expected)
+			}
+		})
+	}
+}
+
+// TestFromInt32 tests converting minor unit int32 to float64
+func TestFromInt32(t *testing.T) {
+	tests := []struct {
+		name     string
+		currency string
+		amount   int32
+		expected float64
+	}{
+		{"USD positive", "USD", 12345, 123.45},
+		{"USD negative", "USD", -12345, -123.45},
+		{"JPY no decimals", "JPY", 12345, 12345.0},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cur := Currencies[tt.currency]
+			result := cur.FromInt32(tt.amount)
+			if result != tt.expected {
+				t.Errorf("FromInt32(%d) = %f, want %f", tt.amount, result, tt.expected)
+			}
+		})
+	}
+}
+
 // Example functions for documentation
 
 func ExampleGetByCode() {

@@ -13,6 +13,8 @@ type Currency interface {
 	getFormat() string
 	Format(amount int64) string
 	format(amount int64, pattern string) string
+	FromInt(amount int64) float64
+	FromInt32(amount int32) float64
 }
 
 type CommonCurrency struct {
@@ -84,6 +86,24 @@ func (c CommonCurrency) format(amount int64, pattern string) string {
 	result = replaceAll(result, "{amount}", formattedAmount)
 
 	return result
+}
+
+// FromInt converts a minor unit int64 amount to a float64 major unit amount
+// e.g. for USD (2 decimals): FromInt(12345) returns 123.45
+func (c CommonCurrency) FromInt(amount int64) float64 {
+	if c.decimalCount == 0 {
+		return float64(amount)
+	}
+	divisor := int64(1)
+	for i := uint8(0); i < c.decimalCount; i++ {
+		divisor *= 10
+	}
+	return float64(amount) / float64(divisor)
+}
+
+// FromInt32 converts a minor unit int32 amount to a float64 major unit amount
+func (c CommonCurrency) FromInt32(amount int32) float64 {
+	return c.FromInt(int64(amount))
 }
 
 // formatAmount formats the amount with proper decimal and thousand separators
