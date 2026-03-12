@@ -5,12 +5,38 @@ import (
 	"testing"
 )
 
-// TestCurrenciesInitialized verifies all 24 currencies exist in the map
+// TestCurrenciesInitialized verifies all expected currencies exist in the map
 func TestCurrenciesInitialized(t *testing.T) {
 	expectedCodes := []string{
-		"AUD", "BRL", "CAD", "CHF", "CNY", "DKK", "EUR", "GBP",
-		"HKD", "IDR", "INR", "JPY", "KRW", "MXN", "NOK", "NZD",
-		"PLN", "RUB", "SAR", "SEK", "THB", "TRY", "TWD", "USD", "ZAR",
+		"AED", "AFN", "ALL", "AMD", "AOA", "ARS", "AUD", "AWG", "AZN",
+		"BAM", "BBD", "BDT", "BHD", "BIF", "BMD", "BND", "BOB", "BRL",
+		"BSD", "BTN", "BWP", "BYN", "BZD",
+		"CAD", "CDF", "CHF", "CLP", "CNY", "COP", "CRC", "CUP", "CVE", "CZK",
+		"DJF", "DKK", "DOP", "DZD",
+		"EGP", "ERN", "ETB", "EUR",
+		"FJD", "FKP",
+		"GBP", "GEL", "GHS", "GIP", "GMD", "GNF", "GTQ", "GYD",
+		"HKD", "HNL", "HTG", "HUF",
+		"IDR", "ILS", "INR", "IQD", "IRR", "ISK",
+		"JMD", "JOD", "JPY",
+		"KES", "KGS", "KHR", "KMF", "KPW", "KRW", "KWD", "KYD",
+		"LAK", "LBP", "LKR", "LRD", "LSL", "LYD",
+		"MAD", "MDL", "MGA", "MKD", "MMK", "MNT", "MOP", "MRU", "MUR",
+		"MVR", "MWK", "MXN", "MYR", "MZN",
+		"NAD", "NGN", "NIO", "NOK", "NPR", "NZD",
+		"OMR",
+		"PAB", "PEN", "PGK", "PHP", "PKR", "PLN", "PYG",
+		"QAR",
+		"RON", "RSD", "RUB", "RWF",
+		"SAR", "SBD", "SCR", "SDG", "SEK", "SGD", "SHP", "SLE", "SOS",
+		"SRD", "SSP", "STN", "SVC", "SYP", "SZL",
+		"THB", "TJS", "TMT", "TND", "TOP", "TRY", "TTD", "TWD", "TZS",
+		"UAH", "UGX", "USD", "UYU", "UZS",
+		"VES", "VND", "VUV",
+		"WST",
+		"XAF", "XCD", "XCG", "XOF", "XPF",
+		"YER",
+		"ZAR", "ZMW", "ZWG",
 	}
 
 	if len(Currencies) != len(expectedCodes) {
@@ -173,10 +199,10 @@ func TestGetBySymbol(t *testing.T) {
 		wantLength int
 	}{
 		{
-			name:       "Dollar sign returns multiple currencies",
-			symbol:     "$",
-			wantCodes:  []string{"AUD", "CAD", "MXN", "NZD", "USD"},
-			wantLength: 5,
+			name:      "Dollar sign returns multiple currencies",
+			symbol:    "$",
+			wantCodes: []string{"AUD", "CAD", "MXN", "NZD", "USD"},
+			wantLength: 27,
 		},
 		{
 			name:       "Euro symbol returns one currency",
@@ -191,10 +217,10 @@ func TestGetBySymbol(t *testing.T) {
 			wantLength: 2,
 		},
 		{
-			name:       "kr symbol returns multiple Nordic currencies",
-			symbol:     "kr",
-			wantCodes:  []string{"DKK", "NOK", "SEK"},
-			wantLength: 3,
+			name:      "kr symbol returns multiple Nordic currencies",
+			symbol:    "kr",
+			wantCodes: []string{"DKK", "ISK", "NOK", "SEK"},
+			wantLength: 4,
 		},
 		{
 			name:       "Non-existent symbol",
@@ -280,9 +306,9 @@ func TestExists(t *testing.T) {
 func TestAllCodes(t *testing.T) {
 	codes := AllCodes()
 
-	// Should have 25 currencies
-	if len(codes) != 25 {
-		t.Errorf("AllCodes() returned %d codes, want 25", len(codes))
+	// Should have 153 currencies
+	if len(codes) != 153 {
+		t.Errorf("AllCodes() returned %d codes, want 153", len(codes))
 	}
 
 	// Should be sorted
@@ -292,7 +318,7 @@ func TestAllCodes(t *testing.T) {
 		}
 	}
 
-	// Should contain all expected codes
+	// Should contain all originally expected codes
 	expectedCodes := []string{
 		"AUD", "BRL", "CAD", "CHF", "CNY", "DKK", "EUR", "GBP",
 		"HKD", "IDR", "INR", "JPY", "KRW", "MXN", "NOK", "NZD",
@@ -438,11 +464,33 @@ func ExampleGetBySymbol() {
 		fmt.Println(code)
 	}
 	// Output:
+	// ARS
 	// AUD
+	// BBD
+	// BMD
+	// BND
+	// BSD
+	// BZD
 	// CAD
+	// CLP
+	// COP
+	// CUP
+	// CVE
+	// DOP
+	// FJD
+	// GYD
+	// JMD
+	// KYD
+	// LRD
 	// MXN
+	// NAD
 	// NZD
+	// SBD
+	// SGD
+	// SRD
+	// TTD
 	// USD
+	// XCD
 }
 
 func ExampleExists() {
