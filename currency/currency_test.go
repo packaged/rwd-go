@@ -66,7 +66,7 @@ func TestCurrencyFormat(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.code, func(t *testing.T) {
 			cur := Currencies[tt.code]
-			format := cur.getFormat()
+			format := cur.GetFormat()
 			if format == "" {
 				t.Errorf("%s has empty format pattern", tt.code)
 			}
@@ -126,8 +126,8 @@ func TestFormatDefault(t *testing.T) {
 	}
 }
 
-// TestFormat tests currency formatting with pattern strings
-func TestFormat(t *testing.T) {
+// TestCustomFormat tests currency formatting with pattern strings
+func TestCustomFormat(t *testing.T) {
 	tests := []struct {
 		name     string
 		currency string
@@ -182,7 +182,7 @@ func TestFormat(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			cur := Currencies[tt.currency]
-			result := cur.format(tt.amount, tt.pattern)
+			result := cur.CustomFormat(tt.amount, tt.pattern)
 			if result != tt.expected {
 				t.Errorf("format(%d, %q) = %q, want %q", tt.amount, tt.pattern, result, tt.expected)
 			}
@@ -199,9 +199,9 @@ func TestGetBySymbol(t *testing.T) {
 		wantLength int
 	}{
 		{
-			name:      "Dollar sign returns multiple currencies",
-			symbol:    "$",
-			wantCodes: []string{"AUD", "CAD", "MXN", "NZD", "USD"},
+			name:       "Dollar sign returns multiple currencies",
+			symbol:     "$",
+			wantCodes:  []string{"AUD", "CAD", "MXN", "NZD", "USD"},
 			wantLength: 27,
 		},
 		{
@@ -217,9 +217,9 @@ func TestGetBySymbol(t *testing.T) {
 			wantLength: 2,
 		},
 		{
-			name:      "kr symbol returns multiple Nordic currencies",
-			symbol:    "kr",
-			wantCodes: []string{"DKK", "ISK", "NOK", "SEK"},
+			name:       "kr symbol returns multiple Nordic currencies",
+			symbol:     "kr",
+			wantCodes:  []string{"DKK", "ISK", "NOK", "SEK"},
 			wantLength: 4,
 		},
 		{
@@ -240,7 +240,7 @@ func TestGetBySymbol(t *testing.T) {
 			if tt.wantLength > 0 {
 				foundCodes := make(map[string]bool)
 				for _, cur := range result {
-					foundCodes[cur.getCode()] = true
+					foundCodes[cur.GetCode()] = true
 				}
 
 				for _, wantCode := range tt.wantCodes {
@@ -375,8 +375,8 @@ func TestGetByCode(t *testing.T) {
 			if ok != tt.wantOk {
 				t.Errorf("GetByCode(%q) ok = %v, want %v", tt.code, ok, tt.wantOk)
 			}
-			if ok && cur.getCode() != tt.wantCode {
-				t.Errorf("GetByCode(%q) code = %q, want %q", tt.code, cur.getCode(), tt.wantCode)
+			if ok && cur.GetCode() != tt.wantCode {
+				t.Errorf("GetByCode(%q) code = %q, want %q", tt.code, cur.GetCode(), tt.wantCode)
 			}
 		})
 	}
@@ -440,7 +440,7 @@ func TestFromInt32(t *testing.T) {
 func ExampleGetByCode() {
 	cur, ok := GetByCode("EUR")
 	if ok {
-		fmt.Println(cur.getName())
+		fmt.Println(cur.GetName())
 	}
 	// Output: Euro
 }
@@ -450,7 +450,7 @@ func ExampleGetBySymbol() {
 	// Sort for consistent output
 	codes := []string{}
 	for _, cur := range currencies {
-		codes = append(codes, cur.getCode())
+		codes = append(codes, cur.GetCode())
 	}
 	// Simple bubble sort
 	for i := 0; i < len(codes)-1; i++ {
@@ -502,10 +502,10 @@ func ExampleExists() {
 
 func ExampleCurrency_format() {
 	usd := Currencies["USD"]
-	fmt.Println(usd.format(123456, "{symbol}{amount}"))
+	fmt.Println(usd.CustomFormat(123456, "{symbol}{amount}"))
 
 	eur := Currencies["EUR"]
-	fmt.Println(eur.format(123456, "{code} {amount}"))
+	fmt.Println(eur.CustomFormat(123456, "{code} {amount}"))
 	// Output:
 	// $1,234.56
 	// EUR 1.234,56

@@ -1,18 +1,20 @@
 package currency
 
 type Currency interface {
-	getSymbol() string
-	getCode() string
-	getNumericCode() uint16
-	getName() string
-	getDecimalCount() uint8
-	getDecimalSeparator() string
-	getThousandSeparator() string
-	getMajorUnit() string
-	getMinorUnit() string
-	getFormat() string
+	GetSymbol() string
+	GetCode() string
+	GetNumericCode() uint16
+	GetName() string
+	GetDecimalCount() uint8
+	GetDecimalSeparator() string
+	GetThousandSeparator() string
+	GetMajorUnit() string
+	GetMinorUnit() string
+	GetFormat() string
 	Format(amount int64) string
-	format(amount int64, pattern string) string
+	// CustomFormat formats the given amount into a currency string based on the specified pattern available tokens:
+	// {symbol}, {code}, {amount}
+	CustomFormat(amount int64, pattern string) string
 	FromInt(amount int64) float64
 	FromInt32(amount int32) float64
 }
@@ -30,52 +32,52 @@ type CommonCurrency struct {
 	formatPattern     string
 }
 
-func (c CommonCurrency) getSymbol() string {
+func (c CommonCurrency) GetSymbol() string {
 	return c.symbol
 }
 
-func (c CommonCurrency) getCode() string {
+func (c CommonCurrency) GetCode() string {
 	return c.code
 }
 
-func (c CommonCurrency) getNumericCode() uint16 {
+func (c CommonCurrency) GetNumericCode() uint16 {
 	return c.numericCode
 }
 
-func (c CommonCurrency) getName() string {
+func (c CommonCurrency) GetName() string {
 	return c.name
 }
 
-func (c CommonCurrency) getDecimalCount() uint8 {
+func (c CommonCurrency) GetDecimalCount() uint8 {
 	return c.decimalCount
 }
 
-func (c CommonCurrency) getDecimalSeparator() string {
+func (c CommonCurrency) GetDecimalSeparator() string {
 	return c.decimalSeparator
 }
 
-func (c CommonCurrency) getThousandSeparator() string {
+func (c CommonCurrency) GetThousandSeparator() string {
 	return c.thousandSeparator
 }
 
-func (c CommonCurrency) getMajorUnit() string {
+func (c CommonCurrency) GetMajorUnit() string {
 	return c.majorUnit
 }
 
-func (c CommonCurrency) getMinorUnit() string {
+func (c CommonCurrency) GetMinorUnit() string {
 	return c.minorUnit
 }
 
-func (c CommonCurrency) getFormat() string {
+func (c CommonCurrency) GetFormat() string {
 	return c.formatPattern
 }
 
 // Format formats the amount using the currency's default format pattern
 func (c CommonCurrency) Format(amount int64) string {
-	return c.format(amount, c.formatPattern)
+	return c.CustomFormat(amount, c.formatPattern)
 }
 
-func (c CommonCurrency) format(amount int64, pattern string) string {
+func (c CommonCurrency) CustomFormat(amount int64, pattern string) string {
 	// Format the amount according to currency rules
 	formattedAmount := c.formatAmount(amount)
 

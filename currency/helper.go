@@ -10,7 +10,7 @@ func GetByCode(code string) (Currency, bool) {
 func GetBySymbol(symbol string) []Currency {
 	var result []Currency
 	for _, cur := range Currencies {
-		if cur.getSymbol() == symbol {
+		if cur.GetSymbol() == symbol {
 			result = append(result, cur)
 		}
 	}
