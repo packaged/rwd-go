@@ -941,6 +941,19 @@ func init() {
 		formatPattern:     "{symbol}{amount}",
 	}
 
+	Currencies["KZT"] = CommonCurrency{
+		name:              "Tenge",
+		symbol:            "₸",
+		code:              "KZT",
+		numericCode:       398,
+		decimalCount:      2,
+		decimalSeparator:  ",",
+		thousandSeparator: " ",
+		majorUnit:         "tenge",
+		minorUnit:         "tiyn",
+		formatPattern:     "{amount} {symbol}",
+	}
+
 	Currencies["LAK"] = CommonCurrency{
 		name:              "Lao Kip",
 		symbol:            "₭",

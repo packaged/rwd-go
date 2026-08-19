@@ -19,7 +19,7 @@ func TestCurrenciesInitialized(t *testing.T) {
 		"HKD", "HNL", "HTG", "HUF",
 		"IDR", "ILS", "INR", "IQD", "IRR", "ISK",
 		"JMD", "JOD", "JPY",
-		"KES", "KGS", "KHR", "KMF", "KPW", "KRW", "KWD", "KYD",
+		"KES", "KGS", "KHR", "KMF", "KPW", "KRW", "KWD", "KYD", "KZT",
 		"LAK", "LBP", "LKR", "LRD", "LSL", "LYD",
 		"MAD", "MDL", "MGA", "MKD", "MMK", "MNT", "MOP", "MRU", "MUR",
 		"MVR", "MWK", "MXN", "MYR", "MZN",
@@ -306,9 +306,9 @@ func TestExists(t *testing.T) {
 func TestAllCodes(t *testing.T) {
 	codes := AllCodes()
 
-	// Should have 153 currencies
-	if len(codes) != 153 {
-		t.Errorf("AllCodes() returned %d codes, want 153", len(codes))
+	// Should have 154 currencies
+	if len(codes) != 154 {
+		t.Errorf("AllCodes() returned %d codes, want 154", len(codes))
 	}
 
 	// Should be sorted
