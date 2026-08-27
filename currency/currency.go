@@ -161,6 +161,19 @@ func init() {
 		formatPattern:     "{symbol}{amount}",
 	}
 
+	Currencies["BGN"] = CommonCurrency{
+		name:              "Bulgarian Lev",
+		symbol:            "лв.",
+		code:              "BGN",
+		numericCode:       975,
+		decimalCount:      2,
+		decimalSeparator:  ",",
+		thousandSeparator: " ",
+		majorUnit:         "lev",
+		minorUnit:         "stotinka",
+		formatPattern:     "{amount} {symbol}",
+	}
+
 	Currencies["BHD"] = CommonCurrency{
 		name:              "Bahraini Dinar",
 		symbol:            "BD",
