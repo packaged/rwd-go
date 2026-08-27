@@ -9,7 +9,7 @@ import (
 func TestCurrenciesInitialized(t *testing.T) {
 	expectedCodes := []string{
 		"AED", "AFN", "ALL", "AMD", "AOA", "ARS", "AUD", "AWG", "AZN",
-		"BAM", "BBD", "BDT", "BHD", "BIF", "BMD", "BND", "BOB", "BRL",
+		"BAM", "BBD", "BDT", "BGN", "BHD", "BIF", "BMD", "BND", "BOB", "BRL",
 		"BSD", "BTN", "BWP", "BYN", "BZD",
 		"CAD", "CDF", "CHF", "CLP", "CNY", "COP", "CRC", "CUP", "CVE", "CZK",
 		"DJF", "DKK", "DOP", "DZD",
@@ -306,9 +306,9 @@ func TestExists(t *testing.T) {
 func TestAllCodes(t *testing.T) {
 	codes := AllCodes()
 
-	// Should have 154 currencies
-	if len(codes) != 154 {
-		t.Errorf("AllCodes() returned %d codes, want 154", len(codes))
+	// Should have 155 currencies
+	if len(codes) != 155 {
+		t.Errorf("AllCodes() returned %d codes, want 155", len(codes))
 	}
 
 	// Should be sorted
