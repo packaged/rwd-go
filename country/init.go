@@ -1965,6 +1965,15 @@ func init() {
 		dialPrefix:   212,
 		currencyCode: "MAD",
 	}
+	// Kosovo's code is user-assigned (ISO 3166-1 has no entry), so it has no numeric code.
+	List["XK"] = CommonCountry{
+		name:         "Kosovo",
+		iso2:         "XK",
+		iso3:         "XKX",
+		numericCode:  0,
+		dialPrefix:   383,
+		currencyCode: "EUR",
+	}
 	List["YE"] = CommonCountry{
 		name:         "Yemen",
 		iso2:         "YE",
