@@ -2,7 +2,7 @@ package currency
 
 import "strings"
 
-// GetByCode returns the currency for an ISO 4217 alphabetic code in either case, and
+// GetByCode returns the currency for an ISO 4217 alphabetic code, case-insensitive, and
 // whether it was found.
 func GetByCode(code string) (Currency, bool) {
 	cur, ok := Currencies[strings.ToUpper(strings.TrimSpace(code))]
@@ -31,7 +31,7 @@ func GetBySymbol(symbol string) []Currency {
 	return result
 }
 
-// Exists returns true if the given currency code is supported, in either case
+// Exists returns true if the given currency code is supported, case-insensitive
 func Exists(code string) bool {
 	_, ok := GetByCode(code)
 	return ok
