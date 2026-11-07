@@ -22,6 +22,13 @@ func TestLookup(t *testing.T) {
 		{"CA", "Newfoundland", "CA-NL"},
 		{"CA", "Île-du-Prince-Édouard", "CA-PE"},
 		{"CA", "british columbia", "CA-BC"},
+		{"GB", "Hampshire", "GB-HAM"},
+		{"GB", "Buckinghamshire", "GB-BKM"},
+		{"gb", "ham", "GB-HAM"},
+		{"GB", "GB-ENG", "GB-ENG"},
+		{"FR", "Île-de-France", "FR-IDF"},
+		{"FR", "ile de france", "FR-IDF"},
+		{"EE", "661", "EE-661"},
 	} {
 		s, ok := Lookup(tt.country, tt.in)
 		if !ok || s.Code != tt.want {
@@ -29,7 +36,9 @@ func TestLookup(t *testing.T) {
 		}
 	}
 	for _, tt := range []struct{ country, in string }{
-		{"US", ""}, {"US", "Ontario"}, {"CA", "FL"}, {"GB", "Hampshire"}, {"US", "Buckinghamshire"},
+		{"US", ""}, {"US", "Ontario"}, {"CA", "FL"}, {"US", "Buckinghamshire"}, {"ZZ", "FL"},
+		// Two Estonian subdivisions are both named Rakvere, so the name finds neither.
+		{"EE", "Rakvere"},
 	} {
 		if s, ok := Lookup(tt.country, tt.in); ok {
 			t.Errorf("Lookup(%q, %q) = %s, want none", tt.country, tt.in, s.Code)
@@ -45,29 +54,23 @@ func TestCodes(t *testing.T) {
 }
 
 func TestList(t *testing.T) {
-	if n := len(List("US")); n != 57 {
-		t.Errorf("US has %d subdivisions, want 57 (50 states, DC, 6 outlying areas)", n)
+	for country, want := range map[string]int{"US": 57, "ca": 13, "GB": 221} {
+		if n := len(List(country)); n != want {
+			t.Errorf("%s has %d subdivisions, want %d", country, n, want)
+		}
 	}
-	if n := len(List("ca")); n != 13 {
-		t.Errorf("CA has %d subdivisions, want 13", n)
-	}
-	if n := len(List("GB")); n != 0 {
-		t.Errorf("GB has %d subdivisions, want 0 (no data yet)", n)
+	if n := len(List("ZZ")); n != 0 {
+		t.Errorf("ZZ has %d subdivisions, want 0", n)
 	}
 }
 
-// No two subdivisions of a country share a code, name or alias once folded, so a lookup
-// never has two answers.
-func TestKeysAreUnique(t *testing.T) {
-	for country, list := range byCountry {
-		seen := map[string]string{}
-		for _, s := range list {
-			keys := append([]string{s.LocalCode(), s.Name}, s.aliases...)
-			for _, k := range keys {
-				if prev, dup := seen[fold(k)]; dup && prev != s.Code {
-					t.Errorf("%s: %q is both %s and %s", country, k, prev, s.Code)
-				}
-				seen[fold(k)] = s.Code
+// Every subdivision is found by its own code, and no name hides behind a code.
+func TestEveryCodeFindsItself(t *testing.T) {
+	loadOnce.Do(load)
+	for country, idx := range byCountry {
+		for _, s := range idx.list {
+			if got, ok := Lookup(country, s.Code); !ok || got.Code != s.Code {
+				t.Errorf("Lookup(%s, %s) = %v, %v", country, s.Code, got, ok)
 			}
 		}
 	}
