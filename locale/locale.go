@@ -1,5 +1,5 @@
 // Package locale reads BCP 47 language tags ("en-GB", "zh-Hant-TW", "fil-PH") for the
-// language and country they name.
+// language and region they name.
 package locale
 
 import (
@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	helpers "github.com/packaged/helpers-go"
-	"github.com/packaged/rwd-go/country"
 	"golang.org/x/text/language"
 )
 
@@ -22,19 +21,19 @@ func Language(tag string) string {
 	return base.String()
 }
 
-// Country returns the country named by a BCP 47 tag's region ("TW" for "zh-Hant-TW").
-// A tag without a region, or with a region that is not a country ("es-419"), has none:
-// the region is never inferred from the language.
-func Country(tag string) (country.Country, bool) {
+// Region returns the region subtag a BCP 47 tag names explicitly, upper-cased: "TW" for
+// "zh-Hant-TW", "419" for "es-419", and "" for a tag without one, such as "en". It is
+// never inferred from the language.
+func Region(tag string) string {
 	t, err := language.Parse(strings.TrimSpace(tag))
 	if err != nil {
-		return nil, false
+		return ""
 	}
 	_, _, region := t.Raw()
 	if region.String() == "ZZ" {
-		return nil, false
+		return ""
 	}
-	return country.Get(region.String())
+	return region.String()
 }
 
 // maxBrowserLanguageLength is the longest browser language tag we emit.

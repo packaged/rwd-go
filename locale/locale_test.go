@@ -13,17 +13,13 @@ func TestLanguage(t *testing.T) {
 	}
 }
 
-func TestCountry(t *testing.T) {
+func TestRegion(t *testing.T) {
 	for in, want := range map[string]string{
-		"en-GB": "GB", "en_gb": "GB", "fil-PH": "PH", "zh-Hant-TW": "TW", "sr-Latn-RS": "RS", "pt-BR": "BR",
+		"en-GB": "GB", "en_gb": "GB", "fil-PH": "PH", "zh-Hant-TW": "TW", "sr-Latn-RS": "RS",
+		"es-419": "419", "en": "", "zh-Hant": "", "": "", "not a tag!": "",
 	} {
-		if c, ok := Country(in); !ok || c.GetIso2() != want {
-			t.Errorf("Country(%q) = %v, %v; want %s", in, c, ok, want)
-		}
-	}
-	for _, in := range []string{"en", "zh-Hant", "es-419", "", "not a tag!"} {
-		if c, ok := Country(in); ok {
-			t.Errorf("Country(%q) = %s, want none", in, c.GetIso2())
+		if got := Region(in); got != want {
+			t.Errorf("Region(%q) = %q, want %q", in, got, want)
 		}
 	}
 }
