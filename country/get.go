@@ -34,8 +34,8 @@ func GetByIso3(code string) (Country, bool) {
 	return nil, false
 }
 
-// GetByNumericCode returns the country for an ISO 3166-1 numeric code. A country List
-// holds without a numeric code, such as Kosovo, is not found by 0.
+// GetByNumericCode returns the country for an ISO 3166-1 numeric code. 0 finds no
+// country, including those without a numeric code, such as Kosovo.
 func GetByNumericCode(code uint16) (Country, bool) {
 	if code == 0 {
 		return nil, false
@@ -60,8 +60,8 @@ func GetByName(name string) (Country, bool) {
 	return nil, false
 }
 
-// Lookup returns the country for an ISO 3166-1 code in any of its forms: alpha-2 (as Get),
-// alpha-3, or numeric digits such as "826".
+// Lookup returns the country for an ISO 3166-1 code in any of its forms, case-insensitive:
+// alpha-2 (including UK and FX), alpha-3, or numeric digits such as "826".
 func Lookup(code string) (Country, bool) {
 	code = strings.TrimSpace(code)
 	if code != "" && strings.Trim(code, "0123456789") == "" {
