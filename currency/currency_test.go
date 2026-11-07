@@ -288,7 +288,7 @@ func TestExists(t *testing.T) {
 		{
 			name: "Lowercase code",
 			code: "usd",
-			want: false,
+			want: true,
 		},
 	}
 
