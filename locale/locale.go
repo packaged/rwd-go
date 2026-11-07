@@ -3,10 +3,8 @@
 package locale
 
 import (
-	"regexp"
 	"strings"
 
-	helpers "github.com/packaged/helpers-go"
 	"golang.org/x/text/language"
 )
 
@@ -36,51 +34,22 @@ func Region(tag string) string {
 	return region.String()
 }
 
-// maxBrowserLanguageLength is the longest browser language tag we emit.
-const maxBrowserLanguageLength = 8
-
-// browserLanguageRegion matches a BCP 47 region subtag: two letters, or the
-// three-digit UN M.49 form ("419" for Latin America). Script subtags are always
-// four letters and variants five to eight, so neither can be mistaken for one.
-var browserLanguageRegion = regexp.MustCompile(`^([A-Za-z]{2}|[0-9]{3})$`)
-
-// NormalizeBrowserLanguage shortens a browser-supplied BCP 47 language tag to
-// fit maxBrowserLanguageLength. Tags carrying a script or variant subtag
-// ("en-GB-oxendict", "zh-Hans-CN", "ca-ES-valencia") are perfectly valid but
-// longer than that.
-//
-// It reduces to language-region, dropping any script and variant in between,
-// rather than cutting subtags off the end. The two differ only for tags carrying
-// both a script and a region, where cutting from the end keeps the script
-// ("zh-Hans") and this keeps the region ("zh-CN"). language-region is the shape
-// browsers overwhelmingly report and consumers therefore recognise, and for
-// Chinese the region implies the script anyway.
-//
-// The result is always a well-formed tag - truncating to length would emit
-// "en-GB-ox".
-func NormalizeBrowserLanguage(tag string) string {
+// Truncate shortens a BCP 47 tag to at most maxLen characters as RFC 5646 section 4.4.2
+// requires: subtags are removed from the right, one at a time, and a single-character
+// subtag left at the end is removed with them. "zh-Latn-CN-variant1-a-extend1" truncated
+// to 10 is "zh-Latn-CN". A tag already within maxLen is returned unchanged, and one whose
+// primary language subtag alone is longer than maxLen is returned as "".
+func Truncate(tag string, maxLen int) string {
 	tag = strings.TrimSpace(tag)
-	if len(tag) <= maxBrowserLanguageLength {
-		return tag
-	}
-
-	subtags := strings.Split(tag, "-")
-	language := subtags[0]
-
-	for _, subtag := range subtags[1:] {
-		// A single-character subtag is an extension singleton; no region follows.
-		if len(subtag) == 1 {
-			break
+	for len(tag) > maxLen {
+		i := strings.LastIndexByte(tag, '-')
+		if i < 0 {
+			return ""
 		}
-		if browserLanguageRegion.MatchString(subtag) {
-			if candidate := language + "-" + subtag; len(candidate) <= maxBrowserLanguageLength {
-				return candidate
-			}
-			break
+		tag = tag[:i]
+		if j := strings.LastIndexByte(tag, '-'); j >= 0 && len(tag)-j == 2 {
+			tag = tag[:j]
 		}
 	}
-
-	// An oversized primary subtag is not a valid language tag whatever we do, so
-	// keep the result within length and let the consumer judge the value.
-	return helpers.TruncateStringToRune(language, maxBrowserLanguageLength)
+	return tag
 }

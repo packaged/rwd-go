@@ -24,35 +24,47 @@ func TestRegion(t *testing.T) {
 	}
 }
 
-func TestNormalizeBrowserLanguage(t *testing.T) {
-	tests := []struct{ name, tag, expect string }{
-		{"empty", "", ""},
-		{"language only", "en", "en"},
-		{"language and region", "en-GB", "en-GB"},
-		{"region preserved", "pt-BR", "pt-BR"},
-		{"script kept when it fits alone", "zh-Hans", "zh-Hans"},
-		{"numeric region kept", "es-419", "es-419"},
-		{"at the limit", "ca-ES-va", "ca-ES-va"},
-		{"variant dropped", "en-GB-oxendict", "en-GB"},
-		{"valencian variant dropped", "ca-ES-valencia", "ca-ES"},
-		{"script dropped, region kept", "zh-Hans-CN", "zh-CN"},
-		{"traditional chinese region kept", "zh-Hant-TW", "zh-TW"},
-		{"hong kong region kept", "zh-Hant-HK", "zh-HK"},
-		{"serbian script dropped for region", "sr-Latn-RS", "sr-RS"},
-		{"azerbaijani script dropped for region", "az-Latn-AZ", "az-AZ"},
-		{"year variant dropped", "de-DE-1996", "de-DE"},
-		{"extlang skipped for region", "zh-yue-HK", "zh-HK"},
-		{"extension singleton stops the scan", "en-US-u-ca-gregory", "en-US"},
-		{"no region falls back to language", "abcdefg-Hant", "abcdefg"},
-		{"oversized primary subtag truncated", "abcdefghij", "abcdefgh"},
-		{"region that would not fit is dropped", "abcdefgh-GB", "abcdefgh"},
-		{"whitespace trimmed", "  en-GB-oxendict  ", "en-GB"},
-		{"lowercase region matched", "en-gb-oxendict", "en-gb"},
+// RFC 5646 section 4.4.2, figure 8: each step drops the right-most subtag, and a
+// single-character subtag left at the end goes with it.
+func TestTruncateFollowsRFC5646(t *testing.T) {
+	const tag = "zh-Latn-CN-variant1-a-extend1-x-wadegile-private1"
+	steps := []struct {
+		maxLen int
+		want   string
+	}{
+		{len(tag), tag},
+		{len(tag) - 1, "zh-Latn-CN-variant1-a-extend1-x-wadegile"},
+		{len("zh-Latn-CN-variant1-a-extend1-x-wadegile") - 1, "zh-Latn-CN-variant1-a-extend1"},
+		{len("zh-Latn-CN-variant1-a-extend1") - 1, "zh-Latn-CN-variant1"},
+		{len("zh-Latn-CN-variant1") - 1, "zh-Latn-CN"},
+		{len("zh-Latn-CN") - 1, "zh-Latn"},
+		{len("zh-Latn") - 1, "zh"},
+	}
+	for _, s := range steps {
+		if got := Truncate(tag, s.maxLen); got != s.want {
+			t.Errorf("Truncate(%q, %d) = %q, want %q", tag, s.maxLen, got, s.want)
+		}
+	}
+}
+
+func TestTruncate(t *testing.T) {
+	tests := []struct {
+		tag    string
+		maxLen int
+		want   string
+	}{
+		{"en-GB", 8, "en-GB"},
+		{"en-GB-oxendict", 8, "en-GB"},
+		{"zh-Hans-CN", 8, "zh-Hans"},
+		{"sr-Latn-RS", 8, "sr-Latn"},
+		{"en-US-u-ca-gregory", 8, "en-US"},
+		{"  en-GB-oxendict  ", 8, "en-GB"},
+		{"abcdefghij", 8, ""},
+		{"", 8, ""},
 	}
 	for _, tt := range tests {
-		got := NormalizeBrowserLanguage(tt.tag)
-		if got != tt.expect || len(got) > maxBrowserLanguageLength {
-			t.Errorf("%s: NormalizeBrowserLanguage(%q) = %q, want %q", tt.name, tt.tag, got, tt.expect)
+		if got := Truncate(tt.tag, tt.maxLen); got != tt.want || len(got) > tt.maxLen {
+			t.Errorf("Truncate(%q, %d) = %q, want %q", tt.tag, tt.maxLen, got, tt.want)
 		}
 	}
 }
