@@ -23,7 +23,7 @@ func Get(code string) (Country, bool) {
 	return c, ok
 }
 
-// GetByIso3 returns the country for an ISO 3166-1 alpha-3 code in either case.
+// GetByIso3 returns the country for an ISO 3166-1 alpha-3 code, case-insensitive.
 func GetByIso3(code string) (Country, bool) {
 	code = strings.ToUpper(strings.TrimSpace(code))
 	for _, c := range List {
