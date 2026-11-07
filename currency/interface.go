@@ -17,6 +17,13 @@ type Currency interface {
 	CustomFormat(amount int64, pattern string) string
 	FromInt(amount int64) float64
 	FromInt32(amount int32) float64
+	// FormatDecimal formats an amount in minor units as a plain decimal string with the
+	// currency's decimal places, e.g. 2999 USD is "29.99", 5 USD is "0.05", 1000 JPY is
+	// "1000". It uses "." and no thousand separators, for machine use.
+	FormatDecimal(amount int64) string
+	// ParseDecimal parses a plain decimal string into minor units, e.g. "29.99" USD is
+	// 2999. It rejects more decimal places than the currency has, unless they are zeros.
+	ParseDecimal(amount string) (int64, error)
 }
 
 type CommonCurrency struct {
