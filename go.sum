@@ -5,8 +5,8 @@ github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/gorilla/schema v1.4.1 h1:jUg5hUjCSDZpNGLuXQOgIWGdlgrIdYvgQ0wZtdK1M3E=
 github.com/gorilla/schema v1.4.1/go.mod h1:Dg5SSm5PV60mhF2NFaTV1xuYYj8tV8NOPRo4FggUMnM=
-github.com/packaged/helpers-go v0.0.0-20260402085723-97a93b41ab20 h1:bLakmP5vQtZ1raH5dkC9mgInKggbv9f2jGC7iUb5fUY=
-github.com/packaged/helpers-go v0.0.0-20260402085723-97a93b41ab20/go.mod h1:M7bvyehX1tE0ZahUh+dCVh9xuGQwt/8JZ3EgBqkVeeA=
+github.com/packaged/helpers-go v0.0.0-20260909105827-17e5832e7b2d h1:RfyXBAyVLLlb2hSBF/FVDFbVtyfuJcMJrWLRXkJOjrs=
+github.com/packaged/helpers-go v0.0.0-20260909105827-17e5832e7b2d/go.mod h1:M7bvyehX1tE0ZahUh+dCVh9xuGQwt/8JZ3EgBqkVeeA=
 github.com/packaged/i18n-go v0.0.0-20251211222056-43add448f5fd h1:Lw03meOQbimptTh0f8+aMBDbN8qeiMvPYu/rtzVQ9Ok=
 github.com/packaged/i18n-go v0.0.0-20251211222056-43add448f5fd/go.mod h1:pYlE0+2maCG1whZ9TI3b2gXVnZue3ri9EdLaFFbacv8=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
