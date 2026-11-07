@@ -1,9 +1,23 @@
 package currency
 
-// GetByCode returns the currency for the given code and a boolean indicating if found
+import "strings"
+
+// GetByCode returns the currency for an ISO 4217 alphabetic code, case-insensitive, and
+// whether it was found.
 func GetByCode(code string) (Currency, bool) {
-	cur, ok := Currencies[code]
+	cur, ok := Currencies[strings.ToUpper(strings.TrimSpace(code))]
 	return cur, ok
+}
+
+// GetByNumericCode returns the currency for an ISO 4217 numeric code, and whether it was
+// found.
+func GetByNumericCode(code uint16) (Currency, bool) {
+	for _, cur := range Currencies {
+		if cur.GetNumericCode() == code {
+			return cur, true
+		}
+	}
+	return nil, false
 }
 
 // GetBySymbol returns all currencies that use the given symbol
@@ -17,9 +31,9 @@ func GetBySymbol(symbol string) []Currency {
 	return result
 }
 
-// Exists returns true if the given currency code is supported
+// Exists returns true if the given currency code is supported, case-insensitive
 func Exists(code string) bool {
-	_, ok := Currencies[code]
+	_, ok := GetByCode(code)
 	return ok
 }
 
