@@ -48,13 +48,19 @@ func GetByNumericCode(code uint16) (Country, bool) {
 	return nil, false
 }
 
-// GetByName returns the country whose English name matches, ignoring case and
-// surrounding space.
+// GetByName returns the country with an English name that matches, ignoring case and
+// surrounding space: its CLDR name ("Czechia"), another name CLDR gives it ("Czech
+// Republic"), or the name this package gave it before using CLDR.
 func GetByName(name string) (Country, bool) {
 	name = strings.TrimSpace(name)
-	for _, c := range List {
-		if strings.EqualFold(c.GetName(), name) {
+	for code, c := range List {
+		if strings.EqualFold(c.GetName(), name) || strings.EqualFold(formerNames[code], name) {
 			return c, true
+		}
+		for _, alt := range alternateNames[code] {
+			if strings.EqualFold(alt, name) {
+				return c, true
+			}
 		}
 	}
 	return nil, false
