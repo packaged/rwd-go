@@ -27,7 +27,11 @@ func TestGetByNumericCode(t *testing.T) {
 }
 
 func TestGetByName(t *testing.T) {
-	for in, want := range map[string]string{"United Kingdom": "GB", "united states": "US", " Germany ": "DE"} {
+	for in, want := range map[string]string{
+		"United Kingdom": "GB", "united states": "US", " Germany ": "DE",
+		"Czechia": "CZ", "Czech Republic": "CZ", "Ivory Coast": "CI", "Côte d’Ivoire": "CI", "Côte d'Ivoire": "CI",
+		"Swaziland": "SZ", "Eswatini": "SZ", "Russian Federation": "RU", "Antigua and Barbuda": "AG",
+	} {
 		if c, ok := GetByName(in); !ok || c.GetIso2() != want {
 			t.Errorf("GetByName(%q) = %v, %v; want %s", in, c, ok, want)
 		}

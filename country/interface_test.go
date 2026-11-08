@@ -23,6 +23,8 @@ func TestGetTranslatedName(t *testing.T) {
 		{"english GB", "GB", "en", "United Kingdom"},
 		{"english FR", "FR", "en", "France"},
 		{"english AF", "AF", "en", "Afghanistan"},
+		{"french CI", "CI", "fr", "Côte d’Ivoire"},
+		{"japanese DE", "DE", "ja", "ドイツ"},
 		{"missing key returns empty", "ZZ", "en", ""},
 	}
 
