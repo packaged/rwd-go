@@ -17,6 +17,9 @@ type Currency interface {
 	GetMinorUnit() string
 	GetFormat() string
 	Format(amount int64) string
+	// FormatTrimmed formats like Format, leaving out the minor part of a whole amount:
+	// 3900 GBP is "£39", 3950 GBP is "£39.50".
+	FormatTrimmed(amount int64) string
 	// CustomFormat formats the given amount into a currency string based on the specified pattern available tokens:
 	// {symbol}, {code}, {amount}
 	CustomFormat(amount int64, pattern string) string
@@ -89,17 +92,29 @@ func (c CommonCurrency) Format(amount int64) string {
 	return c.CustomFormat(amount, c.formatPattern)
 }
 
+// FormatTrimmed formats the amount using the currency's default format pattern, leaving
+// out the minor part of a whole amount: 3900 GBP is "£39", 3950 GBP is "£39.50".
+func (c CommonCurrency) FormatTrimmed(amount int64) string {
+	return c.format(amount, c.formatPattern, true)
+}
+
 // CustomFormat formats the amount in minor units with pattern, replacing {symbol},
 // {code} and {amount}. A negative amount's minus sign leads the result ("-$0.50",
 // "-0,50 €") when the pattern has an {amount}; a pattern without one is used as written.
 func (c CommonCurrency) CustomFormat(amount int64, pattern string) string {
+	return c.format(amount, pattern, false)
+}
+
+// format formats the amount with pattern, leaving out the minor part of a whole amount
+// when trim is set.
+func (c CommonCurrency) format(amount int64, pattern string, trim bool) string {
 	result := pattern
 	result = replaceAll(result, "{symbol}", c.symbol)
 	result = replaceAll(result, "{code}", c.code)
 	if !strings.Contains(result, "{amount}") {
 		return result
 	}
-	result = replaceAll(result, "{amount}", c.formatAmount(magnitude(amount)))
+	result = replaceAll(result, "{amount}", c.formatAmount(magnitude(amount), trim))
 	if amount < 0 {
 		result = "-" + result
 	}
@@ -133,14 +148,14 @@ func (c CommonCurrency) FromInt32(amount int32) float64 {
 }
 
 // formatAmount formats a non-negative amount in minor units with the currency's decimal
-// and thousand separators.
-func (c CommonCurrency) formatAmount(amount uint64) string {
+// and thousand separators, leaving out the minor part of a whole amount when trim is set.
+func (c CommonCurrency) formatAmount(amount uint64, trim bool) string {
 	divisor := uint64(1)
 	for i := uint8(0); i < c.decimalCount; i++ {
 		divisor *= 10
 	}
 	result := formatWithSeparator(amount/divisor, c.thousandSeparator)
-	if c.decimalCount > 0 {
+	if c.decimalCount > 0 && !(trim && amount%divisor == 0) {
 		frac := strconv.FormatUint(amount%divisor, 10)
 		result += c.decimalSeparator + strings.Repeat("0", int(c.decimalCount)-len(frac)) + frac
 	}

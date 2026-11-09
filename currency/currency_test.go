@@ -231,6 +231,32 @@ func TestFormatNegative(t *testing.T) {
 	}
 }
 
+func TestFormatTrimmed(t *testing.T) {
+	tests := []struct {
+		currency string
+		amount   int64
+		want     string
+	}{
+		{"GBP", 3900, "£39"},
+		{"GBP", 3950, "£39.50"},
+		{"GBP", 3905, "£39.05"},
+		{"GBP", -3900, "-£39"},
+		{"GBP", -3950, "-£39.50"},
+		{"GBP", 0, "£0"},
+		{"USD", 123400, "$1,234"},
+		{"EUR", -123400, "-€1.234"},
+		{"PLN", 3900, "39 PLN"},
+		{"JPY", 500, "¥500"},
+		{"BHD", 39000, "BD39"},
+		{"BHD", 39500, "BD39.500"},
+	}
+	for _, tt := range tests {
+		if got := Currencies[tt.currency].FormatTrimmed(tt.amount); got != tt.want {
+			t.Errorf("%s FormatTrimmed(%d) = %q, want %q", tt.currency, tt.amount, got, tt.want)
+		}
+	}
+}
+
 func TestGetBySymbol(t *testing.T) {
 	tests := []struct {
 		name       string
