@@ -1,6 +1,9 @@
 package currency
 
-import "strings"
+import (
+	"fmt"
+	"strings"
+)
 
 // GetByCode returns the currency for an ISO 4217 alphabetic code, case-insensitive, and
 // whether it was found.
@@ -9,11 +12,15 @@ func GetByCode(code string) (Currency, bool) {
 	return cur, ok
 }
 
-// GetByNumericCode returns the currency for an ISO 4217 numeric code, and whether it was
-// found.
+// GetByNumericCode returns the currency for the value of an ISO 4217 numeric code (8 for
+// the lek's "008"), and whether it was found.
 func GetByNumericCode(code uint16) (Currency, bool) {
+	if code == 0 || code > 999 {
+		return nil, false
+	}
+	iso := fmt.Sprintf("%03d", code)
 	for _, cur := range Currencies {
-		if cur.GetNumericCode() == code {
+		if cur.GetIsoNumeric() == iso {
 			return cur, true
 		}
 	}

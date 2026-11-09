@@ -8,7 +8,9 @@ import (
 type Currency interface {
 	GetSymbol() string
 	GetCode() string
-	GetNumericCode() uint16
+	// GetIsoNumeric returns the ISO 4217 numeric code as its three digits: "008" for the
+	// Albanian lek, or "" for a currency without one.
+	GetIsoNumeric() string
 	GetName() string
 	GetDecimalCount() uint8
 	GetDecimalSeparator() string
@@ -38,7 +40,7 @@ type CommonCurrency struct {
 	name              string
 	symbol            string
 	code              string
-	numericCode       uint16
+	isoNumeric        string
 	decimalCount      uint8
 	decimalSeparator  string
 	thousandSeparator string
@@ -55,8 +57,8 @@ func (c CommonCurrency) GetCode() string {
 	return c.code
 }
 
-func (c CommonCurrency) GetNumericCode() uint16 {
-	return c.numericCode
+func (c CommonCurrency) GetIsoNumeric() string {
+	return c.isoNumeric
 }
 
 func (c CommonCurrency) GetName() string {

@@ -21,7 +21,6 @@ import (
 	"path/filepath"
 	"slices"
 	"sort"
-	"strconv"
 	"strings"
 )
 
@@ -98,11 +97,10 @@ func main() {
 		if c.Type == kosovo {
 			cn.Iso3 = "XKX"
 		} else {
-			n, err := strconv.ParseUint(c.Numeric, 10, 16)
-			if err != nil {
-				fail(fmt.Errorf("numeric code for %s: %w", c.Type, err))
+			if len(c.Numeric) != 3 || strings.Trim(c.Numeric, "0123456789") != "" {
+				fail(fmt.Errorf("numeric code for %s is %q, want three digits", c.Type, c.Numeric))
 			}
-			cn.Numeric = uint16(n)
+			cn.Numeric = c.Numeric
 		}
 		countries[c.Type] = cn
 	}
@@ -189,8 +187,8 @@ func main() {
 }
 
 type country struct {
-	Name, Iso2, Iso3, Currency string
-	Numeric, Dial              uint16
+	Name, Iso2, Iso3, Numeric, Currency string
+	Dial                                uint16
 }
 
 func writeGo(cldr, phone string, countries map[string]*country, alternates map[string][]string, eu []string) {
@@ -216,7 +214,7 @@ func writeGo(cldr, phone string, countries map[string]*country, alternates map[s
 	dial := map[uint16][]string{}
 	for _, code := range codes {
 		c := countries[code]
-		fmt.Fprintf(&b, "%q: CommonCountry{name: %q, iso2: %q, iso3: %q, numericCode: %d, dialPrefix: %d, currencyCode: %q},\n",
+		fmt.Fprintf(&b, "%q: CommonCountry{name: %q, iso2: %q, iso3: %q, isoNumeric: %q, dialPrefix: %d, currencyCode: %q},\n",
 			code, c.Name, c.Iso2, c.Iso3, c.Numeric, c.Dial, c.Currency)
 		if c.Dial != 0 {
 			dial[c.Dial] = append(dial[c.Dial], code)

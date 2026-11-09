@@ -12,9 +12,9 @@ func TestKosovo(t *testing.T) {
 		t.Fatal("List has no XK")
 	}
 	if c.GetName() != "Kosovo" || c.GetIso2() != "XK" || c.GetIso3() != "XKX" ||
-		c.GetNumericCode() != 0 || c.GetDialPrefix() != 383 || c.GetCurrencyCode() != "EUR" {
-		t.Errorf("XK = %s %s %s %d %d %s, want Kosovo XK XKX 0 383 EUR",
-			c.GetName(), c.GetIso2(), c.GetIso3(), c.GetNumericCode(), c.GetDialPrefix(), c.GetCurrencyCode())
+		c.GetIsoNumeric() != "" || c.GetDialPrefix() != 383 || c.GetCurrencyCode() != "EUR" {
+		t.Errorf("XK = %s %s %s %q %d %s, want Kosovo XK XKX \"\" 383 EUR",
+			c.GetName(), c.GetIso2(), c.GetIso3(), c.GetIsoNumeric(), c.GetDialPrefix(), c.GetCurrencyCode())
 	}
 	for locale, want := range map[string]string{"en": "Kosovo", "de": "Kosovo", "ja": "コソボ", "ru": "Косово", "pl": "Kosowo"} {
 		if got := c.GetTranslatedName(locale); got != want {

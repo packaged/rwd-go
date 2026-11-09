@@ -35,7 +35,9 @@ type Country interface {
 	GetName() string
 	GetIso2() string
 	GetIso3() string
-	GetNumericCode() uint16
+	// GetIsoNumeric returns the ISO 3166-1 numeric code as its three digits: "056" for
+	// Belgium, or "" for a country without one, such as Kosovo.
+	GetIsoNumeric() string
 	GetDialPrefix() uint16
 	GetCurrencyCode() string
 	GetTranslatedName(locale string) string
@@ -45,7 +47,7 @@ type CommonCountry struct {
 	name         string
 	iso2         string
 	iso3         string
-	numericCode  uint16
+	isoNumeric   string
 	dialPrefix   uint16
 	currencyCode string
 }
@@ -62,8 +64,8 @@ func (c CommonCountry) GetIso3() string {
 	return c.iso3
 }
 
-func (c CommonCountry) GetNumericCode() uint16 {
-	return c.numericCode
+func (c CommonCountry) GetIsoNumeric() string {
+	return c.isoNumeric
 }
 
 func (c CommonCountry) GetDialPrefix() uint16 {
