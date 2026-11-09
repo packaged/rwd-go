@@ -8,6 +8,11 @@ import (
 type Currency interface {
 	GetSymbol() string
 	GetCode() string
+	// GetIsoNumeric returns the ISO 4217 numeric code as its three digits: "008" for the
+	// Albanian lek, or "" for a currency without one.
+	GetIsoNumeric() string
+	// Deprecated: use GetIsoNumeric. GetNumericCode is the code's value, without the
+	// leading zeros the code is written with (8 for the lek's "008").
 	GetNumericCode() uint16
 	GetName() string
 	GetDecimalCount() uint8
@@ -55,6 +60,16 @@ func (c CommonCurrency) GetCode() string {
 	return c.code
 }
 
+func (c CommonCurrency) GetIsoNumeric() string {
+	if c.numericCode == 0 {
+		return ""
+	}
+	s := strconv.Itoa(int(c.numericCode))
+	return strings.Repeat("0", 3-len(s)) + s
+}
+
+// Deprecated: use GetIsoNumeric. GetNumericCode is the code's value, without the
+// leading zeros the code is written with (8 for the lek's "008").
 func (c CommonCurrency) GetNumericCode() uint16 {
 	return c.numericCode
 }
