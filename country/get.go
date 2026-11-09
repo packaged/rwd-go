@@ -56,6 +56,9 @@ func GetByNumericCode(code uint16) (Country, bool) {
 // Republic"), or the name this package gave it before using CLDR.
 func GetByName(name string) (Country, bool) {
 	name = strings.TrimSpace(name)
+	if name == "" {
+		return nil, false
+	}
 	for code, c := range List {
 		if strings.EqualFold(c.GetName(), name) || strings.EqualFold(formerNames[code], name) {
 			return c, true
