@@ -2,8 +2,6 @@ package country
 
 import (
 	"embed"
-	"strconv"
-	"strings"
 	"sync"
 
 	"github.com/packaged/i18n-go"
@@ -40,9 +38,6 @@ type Country interface {
 	// GetIsoNumeric returns the ISO 3166-1 numeric code as its three digits: "056" for
 	// Belgium, or "" for a country without one, such as Kosovo.
 	GetIsoNumeric() string
-	// Deprecated: use GetIsoNumeric. GetNumericCode is the code's value, without the
-	// leading zeros the code is written with (56 for Belgium's "056").
-	GetNumericCode() uint16
 	GetDialPrefix() uint16
 	GetCurrencyCode() string
 	GetTranslatedName(locale string) string
@@ -52,7 +47,7 @@ type CommonCountry struct {
 	name         string
 	iso2         string
 	iso3         string
-	numericCode  uint16
+	isoNumeric   string
 	dialPrefix   uint16
 	currencyCode string
 }
@@ -70,23 +65,7 @@ func (c CommonCountry) GetIso3() string {
 }
 
 func (c CommonCountry) GetIsoNumeric() string {
-	return isoNumeric(c.numericCode)
-}
-
-// isoNumeric writes an ISO numeric code as its three digits, or "" for 0, which no
-// country or currency has.
-func isoNumeric(code uint16) string {
-	if code == 0 {
-		return ""
-	}
-	s := strconv.Itoa(int(code))
-	return strings.Repeat("0", 3-len(s)) + s
-}
-
-// Deprecated: use GetIsoNumeric. GetNumericCode is the code's value, without the
-// leading zeros the code is written with (56 for Belgium's "056").
-func (c CommonCountry) GetNumericCode() uint16 {
-	return c.numericCode
+	return c.isoNumeric
 }
 
 func (c CommonCountry) GetDialPrefix() uint16 {

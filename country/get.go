@@ -1,6 +1,7 @@
 package country
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 )
@@ -34,14 +35,16 @@ func GetByIso3(code string) (Country, bool) {
 	return nil, false
 }
 
-// GetByNumericCode returns the country for an ISO 3166-1 numeric code. 0 finds no
-// country, including those without a numeric code, such as Kosovo.
+// GetByNumericCode returns the country for the value of an ISO 3166-1 numeric code: 56
+// for Belgium's "056". 0 finds no country, including those without a numeric code, such
+// as Kosovo.
 func GetByNumericCode(code uint16) (Country, bool) {
-	if code == 0 {
+	if code == 0 || code > 999 {
 		return nil, false
 	}
+	iso := fmt.Sprintf("%03d", code)
 	for _, c := range List {
-		if c.GetNumericCode() == code {
+		if c.GetIsoNumeric() == iso {
 			return c, true
 		}
 	}

@@ -61,15 +61,15 @@ func TestLookup(t *testing.T) {
 // lookups by them are unambiguous.
 func TestCodesAreUnique(t *testing.T) {
 	iso3 := map[string]string{}
-	numeric := map[uint16]string{}
+	numeric := map[string]string{}
 	for iso2, c := range List {
 		if prev, dup := iso3[c.GetIso3()]; dup {
 			t.Errorf("alpha-3 %s is used by %s and %s", c.GetIso3(), prev, iso2)
 		}
 		iso3[c.GetIso3()] = iso2
-		if n := c.GetNumericCode(); n != 0 {
+		if n := c.GetIsoNumeric(); n != "" {
 			if prev, dup := numeric[n]; dup {
-				t.Errorf("numeric %d is used by %s and %s", n, prev, iso2)
+				t.Errorf("numeric %s is used by %s and %s", n, prev, iso2)
 			}
 			numeric[n] = iso2
 		}
