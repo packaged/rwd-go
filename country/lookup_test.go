@@ -36,8 +36,10 @@ func TestGetByName(t *testing.T) {
 			t.Errorf("GetByName(%q) = %v, %v; want %s", in, c, ok, want)
 		}
 	}
-	if _, ok := GetByName("Atlantis"); ok {
-		t.Error("GetByName(Atlantis) found a country")
+	for _, in := range []string{"Atlantis", "", "  "} {
+		if c, ok := GetByName(in); ok {
+			t.Errorf("GetByName(%q) = %v; want no country", in, c)
+		}
 	}
 }
 
