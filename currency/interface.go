@@ -1,5 +1,10 @@
 package currency
 
+import (
+	"strconv"
+	"strings"
+)
+
 type Currency interface {
 	GetSymbol() string
 	GetCode() string
@@ -12,6 +17,9 @@ type Currency interface {
 	GetMinorUnit() string
 	GetFormat() string
 	Format(amount int64) string
+	// FormatTrimmed formats like Format, leaving out the minor part of a whole amount:
+	// 3900 GBP is "£39", 3950 GBP is "£39.50".
+	FormatTrimmed(amount int64) string
 	// CustomFormat formats the given amount into a currency string based on the specified pattern available tokens:
 	// {symbol}, {code}, {amount}
 	CustomFormat(amount int64, pattern string) string
@@ -84,17 +92,41 @@ func (c CommonCurrency) Format(amount int64) string {
 	return c.CustomFormat(amount, c.formatPattern)
 }
 
-func (c CommonCurrency) CustomFormat(amount int64, pattern string) string {
-	// Format the amount according to currency rules
-	formattedAmount := c.formatAmount(amount)
+// FormatTrimmed formats the amount using the currency's default format pattern, leaving
+// out the minor part of a whole amount: 3900 GBP is "£39", 3950 GBP is "£39.50".
+func (c CommonCurrency) FormatTrimmed(amount int64) string {
+	return c.format(amount, c.formatPattern, true)
+}
 
-	// Replace placeholders in pattern
+// CustomFormat formats the amount in minor units with pattern, replacing {symbol},
+// {code} and {amount}. A negative amount's minus sign leads the result ("-$0.50",
+// "-0,50 €") when the pattern has an {amount}; a pattern without one is used as written.
+func (c CommonCurrency) CustomFormat(amount int64, pattern string) string {
+	return c.format(amount, pattern, false)
+}
+
+// format formats the amount with pattern, leaving out the minor part of a whole amount
+// when trim is set.
+func (c CommonCurrency) format(amount int64, pattern string, trim bool) string {
 	result := pattern
 	result = replaceAll(result, "{symbol}", c.symbol)
 	result = replaceAll(result, "{code}", c.code)
-	result = replaceAll(result, "{amount}", formattedAmount)
-
+	if !strings.Contains(result, "{amount}") {
+		return result
+	}
+	result = replaceAll(result, "{amount}", c.formatAmount(magnitude(amount), trim))
+	if amount < 0 {
+		result = "-" + result
+	}
 	return result
+}
+
+// magnitude returns the absolute value of amount, including math.MinInt64.
+func magnitude(amount int64) uint64 {
+	if amount < 0 {
+		return uint64(-(amount + 1)) + 1
+	}
+	return uint64(amount)
 }
 
 // FromInt converts a minor unit int64 amount to a float64 major unit amount
@@ -115,61 +147,23 @@ func (c CommonCurrency) FromInt32(amount int32) float64 {
 	return c.FromInt(int64(amount))
 }
 
-// formatAmount formats the amount with proper decimal and thousand separators
-func (c CommonCurrency) formatAmount(amount int64) string {
-	// Handle negative amounts
-	negative := amount < 0
-	if negative {
-		amount = -amount
+// formatAmount formats a non-negative amount in minor units with the currency's decimal
+// and thousand separators, leaving out the minor part of a whole amount when trim is set.
+func (c CommonCurrency) formatAmount(amount uint64, trim bool) string {
+	divisor := uint64(1)
+	for i := uint8(0); i < c.decimalCount; i++ {
+		divisor *= 10
 	}
-
-	var intPart, fracPart int64
-	if c.decimalCount > 0 {
-		divisor := int64(1)
-		for i := uint8(0); i < c.decimalCount; i++ {
-			divisor *= 10
-		}
-		intPart = amount / divisor
-		fracPart = amount % divisor
-	} else {
-		intPart = amount
-		fracPart = 0
+	result := formatWithSeparator(amount/divisor, c.thousandSeparator)
+	if c.decimalCount > 0 && !(trim && amount%divisor == 0) {
+		frac := strconv.FormatUint(amount%divisor, 10)
+		result += c.decimalSeparator + strings.Repeat("0", int(c.decimalCount)-len(frac)) + frac
 	}
-
-	// Format integer part with thousand separators
-	intStr := formatWithSeparator(intPart, c.thousandSeparator)
-
-	// Build result
-	var result string
-	if negative {
-		result = "-"
-	}
-
-	result += intStr
-
-	// Add decimal part if needed
-	if c.decimalCount > 0 {
-		result += c.decimalSeparator
-		// Pad fractional part with leading zeros
-		fracStr := ""
-		divisor := int64(1)
-		for i := uint8(0); i < c.decimalCount; i++ {
-			divisor *= 10
-		}
-		divisor /= 10
-		for i := uint8(0); i < c.decimalCount; i++ {
-			digit := (fracPart / divisor) % 10
-			fracStr += string('0' + byte(digit))
-			divisor /= 10
-		}
-		result += fracStr
-	}
-
 	return result
 }
 
 // formatWithSeparator adds thousand separators to a number
-func formatWithSeparator(n int64, separator string) string {
+func formatWithSeparator(n uint64, separator string) string {
 	if n == 0 {
 		return "0"
 	}
