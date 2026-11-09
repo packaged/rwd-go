@@ -2,6 +2,7 @@ package currency
 
 import (
 	"fmt"
+	"math"
 	"testing"
 )
 
@@ -191,6 +192,45 @@ func TestCustomFormat(t *testing.T) {
 }
 
 // TestGetBySymbol tests currency lookup by symbol
+// A negative amount's minus sign leads the result, whichever pattern places the amount.
+func TestCustomFormatNegative(t *testing.T) {
+	tests := []struct {
+		currency string
+		amount   int64
+		pattern  string
+		want     string
+	}{
+		{"USD", -50, "{symbol}{amount}", "-$0.50"},
+		{"USD", -123456, "{symbol}{amount}", "-$1,234.56"},
+		{"CHF", -50, "{code} {amount}", "-CHF 0.50"},
+		{"CHF", -50, "{symbol} {amount}", "-CHF 0.50"},
+		{"EUR", -50, "{amount} {symbol}", "-0,50 €"},
+		{"PLN", -50, "{amount} {code}", "-0,50 PLN"},
+		{"JPY", -500, "{symbol}{amount}", "-¥500"},
+		{"USD", -50, "{amount}", "-0.50"},
+		{"USD", 50, "{symbol}{amount}", "$0.50"},
+		{"USD", 0, "{symbol}{amount}", "$0.00"},
+		{"USD", math.MinInt64, "{amount}", "-92,233,720,368,547,758.08"},
+		// A pattern without {amount} is used as written.
+		{"USD", -3900, "{symbol}-39", "$-39"},
+	}
+	for _, tt := range tests {
+		got := Currencies[tt.currency].CustomFormat(tt.amount, tt.pattern)
+		if got != tt.want {
+			t.Errorf("%s CustomFormat(%d, %q) = %q, want %q", tt.currency, tt.amount, tt.pattern, got, tt.want)
+		}
+	}
+}
+
+// Format puts the sign first for every currency's own pattern.
+func TestFormatNegative(t *testing.T) {
+	for code, cur := range Currencies {
+		if got, want := cur.Format(-1), "-"+cur.Format(1); got != want {
+			t.Errorf("%s Format(-1) = %q, want %q", code, got, want)
+		}
+	}
+}
+
 func TestGetBySymbol(t *testing.T) {
 	tests := []struct {
 		name       string
